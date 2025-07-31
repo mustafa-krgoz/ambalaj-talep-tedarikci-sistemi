@@ -8,6 +8,8 @@ import { UserModule } from './user/user.module';
 import { ProductTypeModule } from './product-type/product-type.module';
 import { User } from './user/entities/user.entity';
 import { ProductType } from './product-type/entities/product-type.entity';
+import { PackagingRequestModule } from './packaging-request/packaging-request.module';
+import { PackagingRequest } from './packaging-request/entities/packaging-request.entity';
 
 @Module({
   imports: [
@@ -18,11 +20,12 @@ import { ProductType } from './product-type/entities/product-type.entity';
       username: 'postgres',
       password: '1',
       database: 'order_tracking_db',
-      entities: [User, ProductType],
+      entities: [User, ProductType, PackagingRequest],
       synchronize: true, // gelişim sürecinde true, prod'da false 
     }),
     UserModule,
     ProductTypeModule,
+    PackagingRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService],
