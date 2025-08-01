@@ -38,4 +38,11 @@ export class PackagingRequestService {
       relations: ['customer'],
     });
   }
+
+  async findByCustomerId(customerId: string): Promise<PackagingRequest[]> {
+    return this.packagingRequestRepository.find({
+      where: { customer: { id: customerId } },
+      relations: ['customer'],
+    });
+  }
 }
