@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -11,6 +7,7 @@ import { CreateSupplierResponseDto } from './dto/create-supplier-response.dto';
 import { User } from '../user/entities/user.entity';
 import { PackagingRequest } from '../packaging-request/entities/packaging-request.entity';
 import { UserRole } from '../user/enums/user-role.enum';
+import { maskName } from '../utils/mask-name'; // bunu da ekle
 
 @Injectable()
 export class SupplierResponseService {
@@ -55,9 +52,20 @@ export class SupplierResponseService {
     return await this.supplierResponseRepository.save(response);
   }
 
-  async findAll(): Promise<SupplierResponse[]> {
-    return this.supplierResponseRepository.find({
+  async findAll(): Promise<any[]> {
+    const responses = await this.supplierResponseRepository.find({
       relations: ['supplier', 'packagingRequest'],
+    });
+
+    return responses.map((response) => {
+      const supplier = { ...(response.supplier as any) };
+      supplier.fullName = maskName(supplier.fullName);
+      delete supplier.password;
+    
+      return {
+        ...response,
+        supplier,
+      };
     });
   }
 }
