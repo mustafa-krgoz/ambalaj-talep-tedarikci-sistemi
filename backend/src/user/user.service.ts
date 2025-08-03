@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -14,7 +15,22 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = this.userRepository.create(createUserDto);
+    const existingUser = await this.userRepository.findOne({
+      where: { email: createUserDto.email },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Email is already in use');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+
+    const newUser = this.userRepository.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+
     return this.userRepository.save(newUser);
   }
 
@@ -37,5 +53,20 @@ export class UserService {
 
   async remove(id: string): Promise<void> {
     await this.userRepository.delete(id);
+  }
+
+  // ✅ Şifre dahil veya şifresiz kullanıcı bulma
+  async findByEmail(email: string, includePassword = false): Promise<User | null> {
+    if (includePassword) {
+      return this.userRepository
+        .createQueryBuilder('user')
+        .addSelect('user.password')
+        .where('user.email = :email', { email })
+        .getOne();
+    }
+
+    return this.userRepository.findOne({
+      where: { email },
+    });
   }
 }

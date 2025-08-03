@@ -12,6 +12,9 @@ import { ProductType } from './product-type/entities/product-type.entity';
 import { PackagingRequestModule } from './packaging-request/packaging-request.module';
 import { PackagingRequest } from './packaging-request/entities/packaging-request.entity';
 import { SupplierResponseModule } from './supplier-response/supplier-response.module';
+import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './common/guards/roles.guard'; 
 
 
 @Module({
@@ -32,8 +35,15 @@ import { SupplierResponseModule } from './supplier-response/supplier-response.mo
     ProductTypeModule,
     PackagingRequestModule,
     SupplierResponseModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}
