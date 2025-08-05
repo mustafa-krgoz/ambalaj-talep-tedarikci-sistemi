@@ -15,6 +15,10 @@ import {
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+// ✅ Navbar ve Footer importları
+import Navbar from '../../components/layout/Navbar';
+import Footer from '../../components/layout/Footer';
+
 const customTheme = {
   primary: '#1a365d',
   secondary: '#4c51bf',
@@ -87,8 +91,8 @@ const CreateRequestPage = () => {
         preferredSupplier: formData.preferredSupplier || null,
         additionalDetails: formData.additionalDetails || null,
       };
-      
-        const response = await fetch(`${API_BASE}/packaging-request`, {
+
+      const response = await fetch(`${API_BASE}/packaging-request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,6 +122,8 @@ const CreateRequestPage = () => {
       </Head>
 
       <ToastContainer position="top-right" />
+
+      <Navbar /> {/* ✅ Navbar eklendi */}
 
       <Box sx={{ py: 8, backgroundColor: '#f8f8f8', minHeight: '100vh' }}>
         <Container maxWidth="sm">
@@ -198,6 +204,8 @@ const CreateRequestPage = () => {
           </Paper>
         </Container>
       </Box>
+
+      <Footer /> {/* ✅ Footer eklendi */}
     </>
   );
 };

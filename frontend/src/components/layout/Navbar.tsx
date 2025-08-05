@@ -1,64 +1,88 @@
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import styles from '../../Navbar.module.css';
-import { Menu, Close } from '@mui/icons-material';
+import { useRouter } from 'next/router';
+import { 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  Button, 
+  IconButton, 
+  Box, 
+  useMediaQuery, 
+  useTheme,
+  Container
+} from '@mui/material';
+import { Menu as MenuIcon } from '@mui/icons-material';
 
 const Navbar = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
+  const handleLoginRedirect = () => router.push('/login');
+  const handleRegisterRedirect = () => router.push('/register');
+  const handleRequestRedirect = () => router.push('/customer/create-request');
 
   return (
-    <nav className={styles.navbar}>
-      <div className={styles.container}>
-        <Link href="/" className={styles.logoLink}>
-          <Image 
-            src="/icons/paketera.png" 
-            alt="Paketera Logo" 
-            width={140} 
-            height={40} 
-            className={styles.logo}
-          />
-        </Link>
+    <AppBar position="static" sx={{ backgroundColor: '#1a365d' }}>
+      <Container maxWidth="xl">
+        <Toolbar disableGutters>
+          <Typography
+            variant="h5"
+            sx={{ 
+              fontWeight: 'bold', 
+              color: 'white', 
+              mr: 4,
+              cursor: 'pointer'
+            }}
+            onClick={() => router.push('/')}
+          >
+            Paketera
+          </Typography>
 
-        <div className={styles.navLinks}>
-          <Link href="/how-it-works" className={styles.navLink}>Nasıl Çalışır?</Link>
-          <Link href="/suppliers" className={styles.navLink}>Tedarikçiler</Link>
-          <Link href="/products" className={styles.navLink}>Ürünler</Link>
-          <Link href="/pricing" className={styles.navLink}>Fiyatlar</Link>
-          <Link href="/contact" className={styles.navLink}>İletişim</Link>
-        </div>
+          {!isMobile && (
+            <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
+              <Button color="inherit" onClick={() => router.push('/homepage')}>Ana Sayfa</Button>
+              <Button color="inherit" onClick={() => router.push('/products')}>Ürünler</Button>
+              <Button color="inherit" onClick={handleRequestRedirect}>Talep Oluştur</Button>
+              <Button color="inherit" onClick={() => router.push('/suppliers')}>Tedarikçiler</Button>
+              <Button color="inherit" onClick={() => router.push('/contact')}>İletişim</Button>
+            </Box>
+          )}
 
-        <div className={styles.authButtons}>
-          <Link href="/login" className={styles.loginButton}>Giriş Yap</Link>
-          <Link href="/register" className={styles.registerButton}>Kayıt Ol</Link>
-        </div>
+          <Box sx={{ flexGrow: 1 }} />
 
-        <button className={styles.mobileMenuButton} onClick={toggleMobileMenu}>
-          {mobileMenuOpen ? <Close /> : <Menu />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className={styles.mobileMenu}>
-          <div className={styles.mobileNavLinks}>
-            <Link href="/how-it-works" className={styles.navLink} onClick={toggleMobileMenu}>Nasıl Çalışır?</Link>
-            <Link href="/suppliers" className={styles.navLink} onClick={toggleMobileMenu}>Tedarikçiler</Link>
-            <Link href="/products" className={styles.navLink} onClick={toggleMobileMenu}>Ürünler</Link>
-            <Link href="/pricing" className={styles.navLink} onClick={toggleMobileMenu}>Fiyatlar</Link>
-            <Link href="/contact" className={styles.navLink} onClick={toggleMobileMenu}>İletişim</Link>
-          </div>
-          <div className={styles.mobileAuthButtons}>
-            <Link href="/login" className={styles.loginButton} onClick={toggleMobileMenu}>Giriş Yap</Link>
-            <Link href="/register" className={styles.registerButton} onClick={toggleMobileMenu}>Kayıt Ol</Link>
-          </div>
-        </div>
-      )}
-    </nav>
+          {isMobile ? (
+            <IconButton color="inherit">
+              <MenuIcon />
+            </IconButton>
+          ) : (
+            <>
+              <Button 
+                variant="outlined" 
+                onClick={handleLoginRedirect} 
+                sx={{
+                  mr: 2, 
+                  color: 'white', 
+                  borderColor: 'white',
+                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' }
+                }}
+              >
+                Giriş Yap
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={handleRegisterRedirect} 
+                sx={{
+                  backgroundColor: '#4c51bf',
+                  '&:hover': { backgroundColor: '#5a67d8' }
+                }}
+              >
+                Kayıt Ol
+              </Button>
+            </>
+          )}
+        </Toolbar>
+      </Container>
+    </AppBar>
   );
 };
 

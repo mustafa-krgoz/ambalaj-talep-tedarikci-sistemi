@@ -26,6 +26,10 @@ import {
 } from '@mui/icons-material';
 import Image from 'next/image';
 
+// ✅ Navbar ve Footer importları
+import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
+
 interface Product {
   id: number;
   name: string;
@@ -134,6 +138,8 @@ export default function ProductsPage() {
         <meta name="description" content="Ambalaj ürünleri detaylarıyla buradan inceleyin." />
       </Head>
 
+      <Navbar /> {/* ✅ Navbar eklendi */}
+
       {/* Hero Section */}
       <Box sx={{
         backgroundColor: primaryColor,
@@ -238,11 +244,7 @@ export default function ProductsPage() {
                 height: '100%'
               }}
             >
-              <Box sx={{ 
-                position: 'relative', 
-                height: 220,
-                width: '100%'
-              }}>
+              <Box sx={{ position: 'relative', height: 220, width: '100%' }}>
                 <Image
                   src={product.image}
                   alt={product.name}
@@ -263,22 +265,14 @@ export default function ProductsPage() {
                     </Typography>
                   </Box>
                 </Box>
-                
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   {product.description}
                 </Typography>
-                
                 <Box sx={{ mb: 2 }}>
                   {product.tags.map(tag => (
-                    <Chip 
-                      key={tag} 
-                      label={tag} 
-                      size="small" 
-                      sx={{ mr: 1, mb: 1 }} 
-                    />
+                    <Chip key={tag} label={tag} size="small" sx={{ mr: 1, mb: 1 }} />
                   ))}
                 </Box>
-                
                 <Box sx={{ 
                   display: 'flex',
                   alignItems: 'center',
@@ -295,7 +289,6 @@ export default function ProductsPage() {
                     {product.features.includes('Su Geçirmez') && <ShippingIcon color="info" />}
                   </Box>
                 </Box>
-                
                 <Button
                   fullWidth
                   variant="contained"
@@ -368,6 +361,8 @@ export default function ProductsPage() {
           </Box>
         )}
       </Container>
+
+      <Footer /> {/* ✅ Footer eklendi */}
     </>
   );
 }
