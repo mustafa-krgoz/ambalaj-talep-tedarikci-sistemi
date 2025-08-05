@@ -87,8 +87,8 @@ const CreateRequestPage = () => {
         preferredSupplier: formData.preferredSupplier || null,
         additionalDetails: formData.additionalDetails || null,
       };
-
-      const response = await fetch(`${API_BASE}/packaging-request`, {
+      
+        const response = await fetch(`${API_BASE}/packaging-request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

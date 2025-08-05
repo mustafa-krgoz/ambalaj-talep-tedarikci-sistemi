@@ -1,5 +1,3 @@
-// src/user/entities/user.entity.ts
-
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -31,6 +29,9 @@ export class User {
     default: UserRole.CUSTOMER,
   })
   role: UserRole;
+
+  @Column({ nullable: true }) // sadece supplier'lar için olabilir
+  companyName?: string;
 
   @CreateDateColumn()
   createdAt: Date;

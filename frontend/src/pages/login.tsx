@@ -1,5 +1,3 @@
-// src/pages/login.tsx
-
 import { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -58,8 +56,11 @@ export default function LoginPage() {
       }
 
       const data = await response.json();
+
+      // 🎯 Bilgileri kaydet
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('userId', data.user.id);
+      localStorage.setItem('userRole', data.user.role); // ← Rol kaydedildi
 
       toast.success('Giriş başarılı! Hoş geldiniz 👋');
       router.push('/');

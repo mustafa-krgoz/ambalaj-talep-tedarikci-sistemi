@@ -1,3 +1,5 @@
+// src/pages/register.tsx
+
 import { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -15,7 +17,11 @@ import {
   Divider,
   useTheme,
   useMediaQuery,
-  FormHelperText
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -27,19 +33,23 @@ import {
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import Image from 'next/image';
+import { toast } from 'react-toastify';
 
 export default function RegisterPage() {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    company: '',
+    role: 'customer',
+    companyName: '',
     acceptTerms: false
   });
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -47,42 +57,74 @@ export default function RegisterPage() {
     passwordLength: false
   });
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: name === 'acceptTerms' ? checked : value
     }));
 
-    // Şifre validasyonu
     if (name === 'password' || name === 'confirmPassword') {
       setErrors({
-        passwordMatch: name === 'confirmPassword' 
-          ? value !== formData.password
-          : formData.confirmPassword !== value,
-        passwordLength: name === 'password' 
-          ? value.length > 0 && value.length < 8
-          : errors.passwordLength
+        passwordMatch:
+          name === 'confirmPassword'
+            ? value !== formData.password
+            : formData.confirmPassword !== value,
+        passwordLength:
+          name === 'password'
+            ? value.length > 0 && value.length < 8
+            : errors.passwordLength
       });
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSelectChange = (event: SelectChangeEvent) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Form validasyonu
+
     if (errors.passwordMatch || errors.passwordLength || !formData.acceptTerms) {
       setIsLoading(false);
+      toast.error('Lütfen formu eksiksiz ve doğru doldurun.');
       return;
     }
 
-    // Kayıt işlemleri burada
-    console.log(formData);
-    setTimeout(() => {
+    const payload = {
+      fullName: formData.fullName,
+      email: formData.email,
+      password: formData.password,
+      role: formData.role,
+      companyName: formData.role === 'supplier' ? formData.companyName : null
+    };
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Kayıt başarısız.');
+      }
+
+      toast.success('Kayıt başarılı! Giriş yapabilirsiniz.');
+      router.push('/login');
+    } catch (error: any) {
+      toast.error(error.message || 'Bir hata oluştu.');
+    } finally {
       setIsLoading(false);
-      router.push('/'); // Başarılı kayıtta ana sayfaya yönlendir
-    }, 1500);
+    }
   };
 
   return (
@@ -92,38 +134,18 @@ export default function RegisterPage() {
         <meta name="description" content="Paketera'ya kaydolun ve ambalaj tedarikçilerine ulaşın" />
       </Head>
 
-      {/* Navbar (Basitleştirilmiş) */}
       <Box sx={{ backgroundColor: 'white', boxShadow: 1 }}>
         <Container maxWidth="xl">
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            py: 2
-          }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 2 }}>
             <Link href="/" passHref>
               <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                <Image 
-                  src="/icons/paketera.png" 
-                  alt="Paketera Logo" 
-                  width={140} 
-                  height={40} 
-                  priority
-                />
+                <Image src="/icons/paketera.png" alt="Paketera Logo" width={140} height={40} priority />
               </Box>
             </Link>
             <Typography variant="body1" color="text.secondary">
               Zaten hesabınız var mı?{' '}
               <Link href="/login" passHref>
-                <Typography 
-                  component="span" 
-                  sx={{ 
-                    color: theme.palette.primary.main, 
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    '&:hover': { textDecoration: 'underline' }
-                  }}
-                >
+                <Typography component="span" sx={{ color: theme.palette.primary.main, fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
                   Giriş Yap
                 </Typography>
               </Link>
@@ -132,40 +154,19 @@ export default function RegisterPage() {
         </Container>
       </Box>
 
-      {/* Ana İçerik */}
       <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center',
-          mb: 4
-        }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            sx={{ alignSelf: 'flex-start', mb: 2 }}
-            onClick={() => router.back()}
-          >
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+          <Button startIcon={<ArrowBackIcon />} sx={{ alignSelf: 'flex-start', mb: 2 }} onClick={() => router.back()}>
             Geri Dön
           </Button>
-          
-          <Typography variant="h4" component="h1" sx={{ 
-            fontWeight: 700,
-            mb: 2,
-            textAlign: 'center'
-          }}>
+          <Typography variant="h4" fontWeight={700} mb={2} textAlign="center">
             Paketera'ya Kayıt Ol
           </Typography>
-          
-          <Typography variant="body1" color="text.secondary" sx={{ 
-            textAlign: 'center',
-            maxWidth: 400,
-            mb: 4
-          }}>
+          <Typography variant="body1" color="text.secondary" textAlign="center" maxWidth={400} mb={4}>
             Ambalaj ihtiyaçlarınız için tedarikçi bulma platformuna erişmek için hesap oluşturun
           </Typography>
         </Box>
 
-        {/* Kayıt Formu */}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
           <TextField
             fullWidth
@@ -173,8 +174,8 @@ export default function RegisterPage() {
             variant="outlined"
             margin="normal"
             required
-            name="name"
-            value={formData.name}
+            name="fullName"
+            value={formData.fullName}
             onChange={handleChange}
             InputProps={{
               startAdornment: (
@@ -185,7 +186,7 @@ export default function RegisterPage() {
             }}
             sx={{ mb: 3 }}
           />
-          
+
           <TextField
             fullWidth
             label="E-posta Adresi"
@@ -205,25 +206,42 @@ export default function RegisterPage() {
             }}
             sx={{ mb: 3 }}
           />
-          
-          <TextField
-            fullWidth
-            label="Şirket Adı (Opsiyonel)"
-            variant="outlined"
-            margin="normal"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <BusinessIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 3 }}
-          />
-          
+
+          <FormControl fullWidth sx={{ mb: 3 }}>
+            <InputLabel id="role-label">Kullanıcı Rolü</InputLabel>
+            <Select
+              labelId="role-label"
+              name="role"
+              value={formData.role}
+              label="Kullanıcı Rolü"
+              onChange={handleSelectChange}
+            >
+              <MenuItem value="customer">Müşteri</MenuItem>
+              <MenuItem value="supplier">Tedarikçi</MenuItem>
+            </Select>
+          </FormControl>
+
+          {formData.role === 'supplier' && (
+            <TextField
+              fullWidth
+              label="Şirket Adı"
+              variant="outlined"
+              margin="normal"
+              required
+              name="companyName"
+              value={formData.companyName}
+              onChange={handleChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <BusinessIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 3 }}
+            />
+          )}
+
           <TextField
             fullWidth
             label="Şifre"
@@ -244,10 +262,7 @@ export default function RegisterPage() {
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
@@ -255,7 +270,7 @@ export default function RegisterPage() {
             }}
             sx={{ mb: 2 }}
           />
-          
+
           <TextField
             fullWidth
             label="Şifre Tekrar"
@@ -277,12 +292,12 @@ export default function RegisterPage() {
             }}
             sx={{ mb: 2 }}
           />
-          
+
           <FormControlLabel
             control={
-              <Checkbox 
-                checked={formData.acceptTerms} 
-                onChange={handleChange} 
+              <Checkbox
+                checked={formData.acceptTerms}
+                onChange={handleChange}
                 name="acceptTerms"
                 color="primary"
                 required
@@ -291,22 +306,15 @@ export default function RegisterPage() {
             label={
               <Typography variant="body2">
                 <Link href="/terms" passHref>
-                  <Typography 
-                    component="span" 
-                    sx={{ 
-                      color: theme.palette.primary.main,
-                      cursor: 'pointer',
-                      '&:hover': { textDecoration: 'underline' }
-                    }}
-                  >
+                  <Typography component="span" sx={{ color: theme.palette.primary.main, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
                     Kullanım koşullarını
                   </Typography>
-                </Link> kabul ediyorum
+                </Link>{' '}kabul ediyorum
               </Typography>
             }
             sx={{ mb: 4 }}
           />
-          
+
           <Button
             fullWidth
             variant="contained"
@@ -314,71 +322,24 @@ export default function RegisterPage() {
             size="large"
             type="submit"
             disabled={isLoading || errors.passwordMatch || errors.passwordLength || !formData.acceptTerms}
-            sx={{
-              py: 2,
-              fontSize: '1rem',
-              fontWeight: 600,
-              mb: 3
-            }}
+            sx={{ py: 2, fontSize: '1rem', fontWeight: 600, mb: 3 }}
           >
             {isLoading ? 'Hesap Oluşturuluyor...' : 'Kayıt Ol'}
           </Button>
-          
+
           <Divider sx={{ my: 4 }}>
-            <Typography variant="body2" color="text.secondary">
-              VEYA
-            </Typography>
+            <Typography variant="body2" color="text.secondary">VEYA</Typography>
           </Divider>
-          
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: isMobile ? 'column' : 'row', 
-            gap: 2,
-            mb: 4
-          }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              color="inherit"
-              size="large"
-              sx={{
-                py: 1.5,
-                borderColor: theme.palette.grey[300],
-                color: theme.palette.text.primary,
-                fontWeight: 500
-              }}
-            >
-              Google ile Kayıt Ol
-            </Button>
-            
-            <Button
-              fullWidth
-              variant="outlined"
-              color="inherit"
-              size="large"
-              sx={{
-                py: 1.5,
-                borderColor: theme.palette.grey[300],
-                color: theme.palette.text.primary,
-                fontWeight: 500
-              }}
-            >
-              Apple ile Kayıt Ol
-            </Button>
+
+          <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 2, mb: 4 }}>
+            <Button fullWidth variant="outlined" color="inherit" size="large">Google ile Kayıt Ol</Button>
+            <Button fullWidth variant="outlined" color="inherit" size="large">Apple ile Kayıt Ol</Button>
           </Box>
-          
+
           <Typography variant="body2" color="text.secondary" align="center">
             Zaten hesabınız var mı?{' '}
             <Link href="/login" passHref>
-              <Typography 
-                component="span" 
-                sx={{ 
-                  color: theme.palette.primary.main, 
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  '&:hover': { textDecoration: 'underline' }
-                }}
-              >
+              <Typography component="span" sx={{ color: theme.palette.primary.main, fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
                 Giriş Yapın
               </Typography>
             </Link>
@@ -386,12 +347,7 @@ export default function RegisterPage() {
         </Box>
       </Container>
 
-      {/* Footer (Basitleştirilmiş) */}
-      <Box sx={{ 
-        backgroundColor: theme.palette.grey[100],
-        py: 4,
-        mt: 8
-      }}>
+      <Box sx={{ backgroundColor: theme.palette.grey[100], py: 4, mt: 8 }}>
         <Container maxWidth="xl">
           <Typography variant="body2" color="text.secondary" align="center">
             © {new Date().getFullYear()} Paketera. Tüm hakları saklıdır.
