@@ -6,6 +6,7 @@ import { PackagingRequest } from './entities/packaging-request.entity';
 import { CreatePackagingRequestDto } from './dto/create-packaging-request.dto';
 import { User } from '../user/entities/user.entity';
 import { SupplierResponse } from '../supplier-response/entities/supplier-response.entity';
+import { ProductType } from '../product-type/entities/product-type.entity';
 
 @Injectable()
 export class PackagingRequestService {
@@ -18,6 +19,9 @@ export class PackagingRequestService {
 
     @InjectRepository(SupplierResponse)
     private readonly supplierResponseRepository: Repository<SupplierResponse>,
+
+    @InjectRepository(ProductType)
+    private readonly productTypeRepository: Repository<ProductType>,
   ) {}
 
   async create(dto: CreatePackagingRequestDto): Promise<PackagingRequest> {
@@ -25,13 +29,20 @@ export class PackagingRequestService {
       where: { id: dto.customerId },
     });
 
-    if (!user) {
-      throw new NotFoundException('Customer not found');
-    }
+    if (!user) throw new NotFoundException('Customer not found');
+
+    const productType = await this.productTypeRepository.findOne({
+      where: { id: dto.productTypeId },
+    });
+
+    if (!productType) throw new NotFoundException('Product type not found');
 
     const request = this.packagingRequestRepository.create({
       customer: user,
-      items: dto.items,
+      productType, // ✅ burada sadece ID değil, relation veriyoruz
+      quantity: dto.quantity,
+      preferredSupplier: dto.preferredSupplier,
+      additionalDetails: dto.additionalDetails,
     });
 
     return await this.packagingRequestRepository.save(request);
@@ -39,14 +50,14 @@ export class PackagingRequestService {
 
   async findAll(): Promise<PackagingRequest[]> {
     return this.packagingRequestRepository.find({
-      relations: ['customer'],
+      relations: ['customer', 'productType'],
     });
   }
 
   async findByCustomerId(customerId: string): Promise<PackagingRequest[]> {
     return this.packagingRequestRepository.find({
       where: { customer: { id: customerId } },
-      relations: ['customer'],
+      relations: ['customer', 'productType'],
     });
   }
 
@@ -55,7 +66,7 @@ export class PackagingRequestService {
     supplierId?: string,
   ): Promise<(PackagingRequest & { responseStatus: 'interested' | 'not_interested' | null })[]> {
     const allRequests = await this.packagingRequestRepository.find({
-      relations: ['customer'],
+      relations: ['customer', 'productType'],
     });
 
     const filtered: (PackagingRequest & {
@@ -63,15 +74,12 @@ export class PackagingRequestService {
     })[] = [];
 
     for (const request of allRequests) {
-      // Ürün tipi filtreleme
-      if (
-        productTypeId &&
-        !request.items.some((item) => item.productTypeId === productTypeId)
-      ) {
+      // ✅ Ürün tipi eşleşme kontrolü
+      if (productTypeId && request.productType.id !== productTypeId) {
         continue;
       }
 
-      // Tedarikçi yanıtı kontrolü
+      // ✅ Tedarikçi yanıtı kontrolü
       let responseStatus: 'interested' | 'not_interested' | null = null;
 
       if (supplierId) {

@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PackagingRequest } from './entities/packaging-request.entity';
 import { User } from '../user/entities/user.entity';
 import { SupplierResponse } from '../supplier-response/entities/supplier-response.entity';
+import { ProductType } from 'src/product-type/entities/product-type.entity';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { SupplierResponse } from '../supplier-response/entities/supplier-respons
       PackagingRequest,
       User,
       SupplierResponse,
+      ProductType,
     ]),
   ],
   controllers: [PackagingRequestController],
