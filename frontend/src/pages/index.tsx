@@ -17,7 +17,9 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
-  Stack
+  Stack,
+  Menu,
+  MenuItem as MuiMenuItem
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -56,7 +58,6 @@ const HomePage = () => {
     }
   };
 
-  // ✅ Giriş sonrası başarı mesajı
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('login') === 'success') {
@@ -71,7 +72,7 @@ const HomePage = () => {
       category: 'Poşetler',
       rating: 4.9,
       suppliers: 2724,
-      image: '/icons/karton-posetler.png'
+      image: '/images/karton-posetler.png'
     },
     {
       id: 2,
@@ -79,7 +80,7 @@ const HomePage = () => {
       category: 'Kutular',
       rating: 4.8,
       suppliers: 3657,
-      image: '/icons/influencer-kutulari.png'
+      image: '/images/influencer-kutulari.png'
     },
     {
       id: 3,
@@ -87,7 +88,7 @@ const HomePage = () => {
       category: 'Poşetler',
       rating: 4.7,
       suppliers: 8893,
-      image: '/icons/kargo-posetleri.png'
+      image: '/images/kargo-posetleri.png'
     },
     {
       id: 4,
@@ -95,7 +96,7 @@ const HomePage = () => {
       category: 'Özel Ürünler',
       rating: 4.9,
       suppliers: 3263,
-      image: '/icons/ambalaj-urunleri.png'
+      image: '/images/ambalaj-urunleri.png'
     },
   ];
 
@@ -134,10 +135,12 @@ const HomePage = () => {
             {!isMobile && (
               <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
                 <Button color="inherit">Ana Sayfa</Button>
+                <Button color="inherit" onClick={() => router.push('/products')}>Ürünler</Button>
+                <Button color="inherit" onClick={handleRequestRedirect}>Talep Oluştur</Button>
                 <Button color="inherit">Nasıl Çalışır?</Button>
                 <Button color="inherit">Tedarikçiler</Button>
-                <Button color="inherit">Ürünler</Button>
                 <Button color="inherit">İletişim</Button>
+                
               </Box>
             )}
 
